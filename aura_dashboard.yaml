@@ -16,8 +16,8 @@ button_card_templates:
   mitt_hem:
     variables:
       # ---------- Utseende ----------
-      _hem_namn: Symfonigatan 7
-      _plats: Borås
+      _hem_namn: gatuadress/namn på hemmet  # syns under översikt under Hem
+      _plats: din stad            # fylli vilken stad du är i eller nämna tom
       _tema: ljus                 # ljus (kräm & brons), mork (marin & indigo) eller noir (svart & champagne) – kan även bytas under Hushåll
       _accent: ''                 # tomt = temats egen färg, annars t.ex. '#B07D3A' eller '#7568FF'
       _bakgrundsbild: /local/rum/oversikt.jpg   # bilden överst på Hem. Tomt = mönster
@@ -116,7 +116,7 @@ button_card_templates:
 
       # ---------- Energi (Tibber) ----------
       _elpris: sensor.tibber_prices
-      _el_prefix: symfonigatan_7  # månadskostnaden läses från sensor.<prefix>_manadskostnad
+      _el_prefix: vad som är efter sensor.XXXXXXX (t.ex sensor.ditthem, och då tar du bort sensor. och lämnar kvar resten)  # månadskostnaden läses från sensor.<prefix>_manadskostnad
       _elomrade: SE3
       _el_billig: 1               # kr/kWh – under detta är det billigt
       _el_dyr: 2                  # kr/kWh – över detta är det dyrt
@@ -136,7 +136,7 @@ button_card_templates:
       _batteri_kapacitet: 0       # batteriets storlek i kWh, t.ex. 10 – ger "Fullt om …" / "Räcker ca …"
 
       # ---------- Förbrukning (valfritt – Tibber Pulse hittas automatiskt via _el_prefix) ----------
-      _el_effekt: ''              # vad huset drar just nu, W           (ex. sensor.symfonigatan_7_power)
+      _el_effekt: ''              # vad huset drar just nu, W           (ex. sensor.ditthem_power)
       _el_forbrukning_idag: ''    # förbrukat idag, kWh
       _el_kostnad_idag: ''        # kostnad idag, kr
       _el_apparater:              # "Vad kostar det?" – ungefärlig förbrukning per körning
