@@ -82,11 +82,11 @@ Allt du ändrar finns i `button_card_templates → mitt_hem → variables`. Ett 
 _hem_namn: Mitt hem
 _plats: Göteborg
 _tema: noir                       # ljus, mork eller noir
-_bakgrundsbild: /local/rum/oversikt.jpg
+_bakgrundsbild: /local/rum/oversikt.jpg  # ändra till egen bild på ditt hem (skapa en mapp i www/rum/valfritt namn.jpg)
 
 _rum:
   - namn: Vardagsrum
-    bild: /local/rum/vardagsrum.jpg
+    bild: /local/rum/vardagsrum.jpg # ändra till egen bild på ditt hem (skapa en mapp i www/rum/valfritt namn.jpg
     temp: sensor.vardagsrum_temperatur
     lampor:
       - entity: light.taklampa
@@ -130,13 +130,6 @@ Alla är valfria och går att stänga av:
 
 Inga personuppgifter skickas. Radarn hämtar kartbitar för området runt hemmet, inte en exakt adress.
 
-## ⚠️ Innan du delar din egen konfiguration
-
-`aura_dashboard.yaml` innehåller dina egna inställningar. Byt ut sådant du inte vill visa innan du laddar upp filen, till exempel:
-
-- `_hem_namn`, `_plats` och adresser (Tibber-prefixet kan innehålla gatuadressen)
-- `_bakgrundsbild` och bildsökvägar
-- namn på personer, telefoner (`notify.mobile_app_…`) och kameror i `larm_automation.yaml`
 
 ## 📝 Licens
 
