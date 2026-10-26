@@ -36,10 +36,10 @@ En entitet är det Home Assistant kallar en enskild lampa, sensor eller knapp. A
 ## 2. Utseende
 
 ```yaml
-_hem_namn: Symfonigatan 7      # står stort i bilden på startsidan
-_plats: Borås                  # rubrik på väderkortet
-_tema: ljus                    # ljus = kräm och brons, mork = marinblått och indigo, noir = svart och champagne
-_accent: ''                    # egen huvudfärg, t.ex. '#2F80ED'. Tomt = temats färg
+_hem_namn: gata/adress/namn på hem      # står stort i bilden på startsidan
+_plats: Borås                           # rubrik på väderkortet
+_tema: ljus                             # ljus = kräm och brons, mork = marinblått och indigo, noir = svart och champagne
+_accent: ''                             # egen huvudfärg, t.ex. '#2F80ED'. Tomt = temats färg
 _bakgrundsbild: /local/hem.jpg # stora bilden på startsidan. Tomt = mönster
 ```
 
@@ -214,8 +214,8 @@ _party_url: ''
 
 ```yaml
 _elpris: sensor.tibber_prices
-_el_prefix: symfonigatan_7     # början på dina Tibber-sensorer
-_elomrade: SE3
+_el_prefix: din_gata/hemmet/mm     # början på dina Tibber-sensorer (sensor.<prefix>, han vara det du döpte den till första gången, ta bort sensor. och lägg bara <prefix>)
+_elomrade: SE3                 # ditt elområde
 _el_billig: 1                  # kr/kWh – under detta: grön stapel
 _el_dyr: 2                     # kr/kWh – över detta: röd stapel
 ```
