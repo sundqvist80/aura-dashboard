@@ -116,7 +116,7 @@ button_card_templates:
 
       # ---------- Energi (Tibber) ----------
       _elpris: sensor.tibber_prices
-      _el_prefix: vad som är efter sensor.XXXXXXX (t.ex sensor.ditthem, och då tar du bort sensor. och lämnar kvar resten)  # månadskostnaden läses från sensor.<prefix>_manadskostnad
+      _el_prefix: ''               # det som står efter "sensor." på dina Tibber-sensorer, t.ex. ditthem
       _elomrade: SE3
       _el_billig: 1               # kr/kWh – under detta är det billigt
       _el_dyr: 2                  # kr/kWh – över detta är det dyrt
