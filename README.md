@@ -4,9 +4,9 @@
 
 Aura är en komplett dashboard för Home Assistant med ett modernt, animerat utseende i stil med en köpt app. Hela gränssnittet ritas av **ett enda button-card-kort** och styrs från **ett enda inställningsblock** (`mitt_hem`). Byter du hem, lampor eller sensorer ändrar du några rader, inte hela dashboarden.
 
-![Aura – startsidan](bilder/hem.png)
-
-<!-- Lägg dina egna skärmbilder i mappen bilder/ och byt filnamnen ovan och nedan -->
+<p align="center">
+  <img src="bilder/aura-startsida.webp" alt="Aura på surfplatta och iPhone – växlar mellan temana Ljus, Mörk och Noir" width="100%">
+</p>
 
 ---
 
@@ -32,11 +32,22 @@ Aura är en komplett dashboard för Home Assistant med ett modernt, animerat uts
 
 ## 📸 Skärmbilder
 
+**Tre teman – samma hem**
+
+| Ljus | Mörk | Noir |
+|---|---|---|
+| ![Hem – ljust tema](bilder/hem-ljus.png) | ![Hem – mörkt tema](bilder/hem-mork.png) | ![Hem – Noir](bilder/hem-noir.png) |
+
+**Sidorna**
+
 | | |
 |---|---|
-| ![Ljus](bilder/ljus.png) | ![Media](bilder/media.png) |
 | ![Energi](bilder/energi.png) | ![Väder](bilder/vader.png) |
-| ![Hushåll](bilder/hushall.png) | ![Mobil](bilder/mobil.png) |
+| ![Media](bilder/media.png) | ![Hushåll](bilder/hushall.png) |
+
+**På mobilen**
+
+<p align="center"><img src="bilder/mobil.png" alt="Aura på iPhone" width="320"></p>
 
 ---
 
@@ -113,7 +124,13 @@ Alla är valfria och går att stänga av:
 
 Inga personuppgifter skickas. Radarn hämtar kartbitar för området runt hemmet, inte en exakt adress.
 
+## ⚠️ Innan du delar din egen konfiguration
 
+`aura_dashboard.yaml` innehåller dina egna inställningar. Byt ut sådant du inte vill visa innan du laddar upp filen, till exempel:
+
+- `_hem_namn`, `_plats` och adresser (Tibber-prefixet kan innehålla gatuadressen)
+- `_bakgrundsbild` och bildsökvägar
+- namn på personer, telefoner (`notify.mobile_app_…`) och kameror i `larm_automation.yaml`
 
 ## 📝 Licens
 
