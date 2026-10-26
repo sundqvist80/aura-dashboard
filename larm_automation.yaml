@@ -46,12 +46,12 @@ triggers:
 
 variables:
   larm: alarm_control_panel.alarmo
-  hogtalare: media_player.vardagsrum_3            # ← ÄNDRA vid behov
+  hogtalare: media_player.din_mediaspelare            # ← ÄNDRA vid behov
   rost: tts.google_ai_tts                         # ← ÄNDRA vid behov
   telefoner:                                      # ← ÄNDRA: helst notify.mobile_app_…
-    - notify.sundqvist_iphone
+    - notify.din_telefon
   kameror:                                        # ← ÄNDRA vid behov
-    - camera.vardagsrum
+    - camera.din_kamera
   volym: 0.4
   volym_larm: 0.9
   sekunder: "{{ state_attr(larm, 'delay') | int(0) }}"
