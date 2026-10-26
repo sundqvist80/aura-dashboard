@@ -1,0 +1,67 @@
+# ════════════════════════════════════════════════════════════════════════════
+#  PARTYLÄGE – skript som Aura startar från knappen under Ljuseffekter
+#
+#  Så lägger du in det:
+#    Inställningar → Automationer och scener → fliken Skript → Lägg till skript → Skapa nytt
+#    → ⋮ uppe till höger → Redigera i YAML → markera allt och klistra in detta → Spara
+#    Kontrollera sedan att skriptet heter script.partylage (⋮ → Information → Entitets-ID).
+#
+#  Du behöver inte ändra något här – Aura skickar med lamporna, högtalaren,
+#  takten och färgerna från skivomslaget när du trycker på knappen.
+# ════════════════════════════════════════════════════════════════════════════
+alias: Partylage
+icon: mdi:party-popper
+mode: restart
+fields:
+  lampor:
+    description: Färglamporna som ska vara med
+    example: "[light.vardagsrum]"
+  spelare:
+    description: Mediaspelaren – partyt slutar när musiken pausas
+    example: media_player.vardagsrum
+  takt:
+    description: Sekunder mellan färgbytena (1 = fest, 2 = medel, 4 = lugn)
+    example: 2
+  farger:
+    description: "Färger från skivomslaget som [nyans, mättnad]. Tom = alla regnbågens färger"
+    example: "[[330, 90], [200, 80]]"
+  spara:
+    description: Spara lampornas läge innan partyt (true första gången)
+    example: true
+sequence:
+  - variables:
+      lista: "{{ lampor if lampor is list else [lampor] }}"
+      sekunder: "{{ [takt | float(2), 0.8] | max }}"
+      spelade: "{{ spelare is defined and spelare != '' and is_state(spelare, 'playing') }}"
+  # Kom ihåg hur lamporna var, så att allt blir som förut när partyt slutar
+  - if: "{{ spara | default(true) }}"
+    then:
+      - action: scene.create
+        data:
+          scene_id: fore_party
+          snapshot_entities: "{{ lista }}"
+  - repeat:
+      # Håller på så länge musiken spelar (startades det utan musik: tills du stänger av)
+      while:
+        - condition: template
+          value_template: "{{ not spelade or is_state(spelare, 'playing') }}"
+      sequence:
+        - repeat:
+            for_each: "{{ lista }}"
+            sequence:
+              - action: light.turn_on
+                target:
+                  entity_id: "{{ repeat.item }}"
+                data:
+                  hs_color: >-
+                    {% if farger is defined and farger | count > 0 %}{{ farger | random }}{% else %}[{{ range(0, 360) | random }}, {{ range(75, 100) | random }}]{% endif %}
+                  brightness_pct: "{{ range(55, 101) | random }}"
+                  transition: "{{ (sekunder * 0.8) | round(1) }}"
+                continue_on_error: true
+        - delay:
+            seconds: "{{ sekunder }}"
+  # Musiken har slutat – tillbaka till hur det var innan
+  - action: scene.turn_on
+    target:
+      entity_id: scene.fore_party
+    continue_on_error: true

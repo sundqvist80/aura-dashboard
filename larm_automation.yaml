@@ -1,0 +1,271 @@
+# ════════════════════════════════════════════════════════════════════════════
+#  LARM – ljud, notiser och kamerabilder (för Alarmo)          version 2
+#
+#  Byt ut hela din automation mot denna:
+#    öppna automationen → ⋮ → Redigera i YAML → markera allt → klistra in → Spara
+#
+#  Ändra bara raderna under "variables:" (markerade med ← ÄNDRA).
+#
+#  VIKTIGT om telefonen: notiser med bild och larmljud kräver att du använder
+#  Home Assistant-appens egen tjänst, som alltid heter notify.mobile_app_…
+#  Hitta den: Utvecklarverktyg → Åtgärder → skriv "mobile_app" i sökrutan.
+#  (Står det bara notify.sundqvist_iphone fungerar enkla textnotiser, men inte bild/larmljud.)
+# ════════════════════════════════════════════════════════════════════════════
+alias: Larm – ljud, notiser och kamerabilder
+description: >-
+  Säger till i högtalaren när larmet slås på och av, varnar direkt när någon kommer in
+  i ett larmat hus, och skickar notis med kamerabild till telefonerna om larmet går.
+mode: parallel
+max: 10
+
+triggers:
+  - trigger: state
+    entity_id: alarm_control_panel.alarmo
+    to: arming
+    id: aktiveras
+  - trigger: state
+    entity_id: alarm_control_panel.alarmo
+    to: [armed_away, armed_home, armed_night, armed_vacation, armed_custom_bypass]
+    id: aktiverat
+  - trigger: state
+    entity_id: alarm_control_panel.alarmo
+    to: pending
+    id: inpassering
+  - trigger: state
+    entity_id: alarm_control_panel.alarmo
+    to: triggered
+    id: larm
+  - trigger: state
+    entity_id: alarm_control_panel.alarmo
+    from: [armed_away, armed_home, armed_night, armed_vacation, armed_custom_bypass, pending, triggered]
+    to: disarmed
+    id: avlarmat
+  - trigger: state
+    entity_id: zone.home
+    id: hemkomst
+
+variables:
+  larm: alarm_control_panel.alarmo
+  hogtalare: media_player.vardagsrum_3            # ← ÄNDRA vid behov
+  rost: tts.google_ai_tts                         # ← ÄNDRA vid behov
+  telefoner:                                      # ← ÄNDRA: helst notify.mobile_app_…
+    - notify.sundqvist_iphone
+  kameror:                                        # ← ÄNDRA vid behov
+    - camera.vardagsrum
+  volym: 0.4
+  volym_larm: 0.9
+  sekunder: "{{ state_attr(larm, 'delay') | int(0) }}"
+  vem: "{{ state_attr(larm, 'changed_by') or '' }}"
+  lage: >-
+    {{ {'armed_away': 'Bortaläge', 'armed_home': 'Hemmaläge', 'armed_night': 'Nattläge',
+        'armed_vacation': 'Semesterläge'}.get(states(larm), 'Larmat') }}
+  utlost: >-
+    {% set o = state_attr(larm, 'open_sensors') or {} %}
+    {{ o.keys() | map('state_attr', 'friendly_name') | reject('none') | join(', ') }}
+  # Telefoner som är notify-entiteter (inte notify.mobile_app_…) – får enkla textnotiser
+  notis_entiteter: "{{ states.notify | map(attribute='entity_id') | list }}"
+
+actions:
+  - choose:
+      # ── Larmet håller på att slås på (utpasseringstid) ──
+      - conditions: [{ condition: trigger, id: aktiveras }]
+        sequence:
+          - action: media_player.volume_set
+            target: { entity_id: "{{ hogtalare }}" }
+            data: { volume_level: "{{ volym }}" }
+            continue_on_error: true
+          - action: tts.speak
+            target: { entity_id: "{{ rost }}" }
+            data:
+              media_player_entity_id: "{{ hogtalare }}"
+              message: >-
+                Larmet aktiveras{{ ' om ' ~ sekunder ~ ' sekunder' if sekunder > 0 else '' }}.
+                Lämna huset och stäng dörren efter dig.
+          - if: "{{ sekunder > 25 }}"
+            then:
+              - wait_template: "{{ not is_state(larm, 'arming') }}"
+                timeout: "{{ sekunder - 12 }}"
+              - if: "{{ is_state(larm, 'arming') }}"
+                then:
+                  - action: tts.speak
+                    target: { entity_id: "{{ rost }}" }
+                    data: { media_player_entity_id: "{{ hogtalare }}", message: "Tio sekunder kvar." }
+
+      # ── Larmet är på ──
+      - conditions: [{ condition: trigger, id: aktiverat }]
+        sequence:
+          - action: tts.speak
+            target: { entity_id: "{{ rost }}" }
+            data: { media_player_entity_id: "{{ hogtalare }}", message: "Larmet är på. {{ lage }}." }
+            continue_on_error: true
+          - repeat:
+              for_each: "{{ telefoner }}"
+              sequence:
+                - if: "{{ repeat.item in notis_entiteter }}"
+                  then:
+                    - action: notify.send_message
+                      target: { entity_id: "{{ repeat.item }}" }
+                      data: { title: "🔒 Larmet är på", message: "{{ lage }}{{ ' – av ' ~ vem if vem else '' }}" }
+                      continue_on_error: true
+                  else:
+                    - action: "{{ repeat.item }}"
+                      data:
+                        title: "🔒 Larmet är på"
+                        message: "{{ lage }}{{ ' – av ' ~ vem if vem else '' }}"
+                        data: { tag: larm-status, group: larm }
+                      continue_on_error: true
+
+      # ── Någon har kommit in i ett larmat hus (inpasseringstid) ──
+      #    Rösten kommer DIREKT och upprepas tills koden anges. Notiserna går samtidigt.
+      - conditions: [{ condition: trigger, id: inpassering }]
+        sequence:
+          - action: media_player.volume_set
+            target: { entity_id: "{{ hogtalare }}" }
+            data: { volume_level: "{{ volym_larm }}" }
+            continue_on_error: true
+          - parallel:
+              - repeat:
+                  while:
+                    - condition: template
+                      value_template: "{{ is_state(larm, 'pending') and repeat.index <= 8 }}"
+                  sequence:
+                    - action: tts.speak
+                      target: { entity_id: "{{ rost }}" }
+                      data:
+                        media_player_entity_id: "{{ hogtalare }}"
+                        message: >-
+                          {% if repeat.index == 1 %}Huset är larmat. Ange koden för att slå av larmet{{ ', annars går det om ' ~ sekunder ~ ' sekunder' if sekunder > 0 else '' }}.
+                          {% else %}Larmet är på. Ange koden.{% endif %}
+                      continue_on_error: true
+                    - wait_template: "{{ not is_state(larm, 'pending') }}"
+                      timeout: 9
+              - repeat:
+                  for_each: "{{ telefoner }}"
+                  sequence:
+                    - if: "{{ repeat.item in notis_entiteter }}"
+                      then:
+                        - action: notify.send_message
+                          target: { entity_id: "{{ repeat.item }}" }
+                          data: { title: "⚠️ Någon har kommit in", message: "{{ utlost or 'En dörr har öppnats' }} medan larmet är på." }
+                          continue_on_error: true
+                      else:
+                        - action: "{{ repeat.item }}"
+                          data:
+                            title: "⚠️ Någon har kommit in"
+                            message: "{{ utlost or 'En dörr har öppnats' }} medan larmet är på. Larmet går om koden inte anges."
+                            data: { tag: larm-status, group: larm, url: "entityId:{{ larm }}", clickAction: "entityId:{{ larm }}", push: { interruption-level: time-sensitive } }
+                          continue_on_error: true
+
+      # ── LARMET GÅR ──
+      - conditions: [{ condition: trigger, id: larm }]
+        sequence:
+          - parallel:
+              # Larmröst i högtalaren tills larmet slås av
+              - sequence:
+                  - action: media_player.volume_set
+                    target: { entity_id: "{{ hogtalare }}" }
+                    data: { volume_level: "{{ volym_larm }}" }
+                    continue_on_error: true
+                  - repeat:
+                      while:
+                        - condition: template
+                          value_template: "{{ is_state(larm, 'triggered') and repeat.index <= 12 }}"
+                      sequence:
+                        - action: tts.speak
+                          target: { entity_id: "{{ rost }}" }
+                          data: { media_player_entity_id: "{{ hogtalare }}", message: "Inbrottslarm! Inbrottslarm! Alla är larmade." }
+                          continue_on_error: true
+                        - wait_template: "{{ not is_state(larm, 'triggered') }}"
+                          timeout: 6
+              # Notis med kamerabild till varje telefon (en notis per kamera)
+              - repeat:
+                  for_each: "{{ telefoner }}"
+                  sequence:
+                    - variables: { telefon: "{{ repeat.item }}" }
+                    - if: "{{ telefon in notis_entiteter }}"
+                      then:
+                        - action: notify.send_message
+                          target: { entity_id: "{{ telefon }}" }
+                          data: { title: "🚨 LARMET GÅR", message: "{{ 'Utlöst av: ' ~ utlost if utlost else 'Inbrottslarmet har gått hemma.' }}" }
+                          continue_on_error: true
+                      else:
+                        - repeat:
+                            for_each: "{{ kameror }}"
+                            sequence:
+                              - action: "{{ telefon }}"
+                                data:
+                                  title: "{{ '🚨 LARMET GÅR' if repeat.first else '📷 ' ~ state_attr(repeat.item, 'friendly_name') }}"
+                                  message: "{{ 'Utlöst av: ' ~ utlost if utlost else 'Inbrottslarmet har gått hemma.' }}"
+                                  data:
+                                    image: "/api/camera_proxy/{{ repeat.item }}"
+                                    entity_id: "{{ repeat.item }}"
+                                    tag: "larm-{{ repeat.item }}"
+                                    group: larm
+                                    url: "entityId:{{ larm }}"
+                                    clickAction: "entityId:{{ larm }}"
+                                    ttl: 0
+                                    priority: high
+                                    channel: alarm_stream
+                                    push:
+                                      interruption-level: critical
+                                      sound: { name: default, critical: 1, volume: 1.0 }
+                                continue_on_error: true
+
+      # ── Larmet slås av ──
+      - conditions: [{ condition: trigger, id: avlarmat }]
+        sequence:
+          - action: media_player.volume_set
+            target: { entity_id: "{{ hogtalare }}" }
+            data: { volume_level: "{{ volym }}" }
+            continue_on_error: true
+          - action: tts.speak
+            target: { entity_id: "{{ rost }}" }
+            data:
+              media_player_entity_id: "{{ hogtalare }}"
+              message: "{{ 'Larmet är avstängt.' if trigger.from_state.state == 'triggered' else 'Välkommen hem! Larmet är avstängt.' }}"
+            continue_on_error: true
+          - repeat:
+              for_each: "{{ telefoner }}"
+              sequence:
+                - if: "{{ repeat.item in notis_entiteter }}"
+                  then:
+                    - action: notify.send_message
+                      target: { entity_id: "{{ repeat.item }}" }
+                      data: { title: "🔓 Larmet är av", message: "Avlarmat{{ ' av ' ~ vem if vem else '' }}." }
+                      continue_on_error: true
+                  else:
+                    - action: "{{ repeat.item }}"
+                      data: { title: "🔓 Larmet är av", message: "Avlarmat{{ ' av ' ~ vem if vem else '' }}.", data: { tag: larm-status, group: larm } }
+                      continue_on_error: true
+
+      # ── Någon kommer hem medan larmet är på ──
+      - conditions:
+          - condition: trigger
+            id: hemkomst
+          - condition: template
+            value_template: >-
+              {{ trigger.to_state.state | int(0) > trigger.from_state.state | int(0)
+                 and states(larm) in ['armed_away', 'armed_vacation'] }}
+        sequence:
+          - repeat:
+              for_each: "{{ telefoner }}"
+              sequence:
+                - if: "{{ repeat.item in notis_entiteter }}"
+                  then:
+                    - action: notify.send_message
+                      target: { entity_id: "{{ repeat.item }}" }
+                      data: { title: "🏠 Välkommen hem", message: "Kom ihåg – larmet är fortfarande på ({{ lage }})." }
+                      continue_on_error: true
+                  else:
+                    - action: "{{ repeat.item }}"
+                      data:
+                        title: "🏠 Välkommen hem"
+                        message: "Kom ihåg – larmet är fortfarande på ({{ lage }})."
+                        data:
+                          tag: larm-hem
+                          group: larm
+                          url: "entityId:{{ larm }}"
+                          clickAction: "entityId:{{ larm }}"
+                          actions:
+                            - { action: URI, title: Öppna larmet, uri: "entityId:{{ larm }}" }
+                      continue_on_error: true
