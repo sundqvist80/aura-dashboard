@@ -61,8 +61,8 @@ button_card_templates:
           temp: sensor.temp_overvaningen_temperatur
           fukt: sensor.temp_overvaningen_luftfuktighet
           lampor:
-            - entity: light.melvins_sanglampa
-              namn: Melvins lampa
+            - entity: light.sanglampa
+              namn: sänglampa
               ikon: mdi:lamp-outline
             - entity: switch.fonster_sovrum_uttag
               namn: Fönster sovrum
