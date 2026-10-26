@@ -8,6 +8,11 @@ Aura är en komplett dashboard för Home Assistant med ett modernt, animerat uts
   <img src="bilder/aura-startsida.webp" alt="Aura på surfplatta och iPhone – växlar mellan temana Ljus, Mörk och Noir" width="100%">
 </p>
 
+<p align="center">
+  <a href="https://www.youtube.com/shorts/4hE8C9R9Sck"><img src="https://img.youtube.com/vi/4hE8C9R9Sck/hqdefault.jpg" alt="Se Aura i rörelse på YouTube" width="360"></a><br>
+  <a href="https://www.youtube.com/shorts/4hE8C9R9Sck"><b>▶ Se Aura i rörelse på YouTube</b></a>
+</p>
+
 ---
 
 ## ✨ Höjdpunkter
@@ -42,8 +47,9 @@ Aura är en komplett dashboard för Home Assistant med ett modernt, animerat uts
 
 | | |
 |---|---|
+| ![Ljus](bilder/ljus.png) | ![Media](bilder/media.png) |
 | ![Energi](bilder/energi.png) | ![Väder](bilder/vader.png) |
-| ![Media](bilder/media.png) | ![Hushåll](bilder/hushall.png) |
+| ![Hushåll](bilder/hushall.png) | |
 
 **På mobilen**
 
