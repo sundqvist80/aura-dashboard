@@ -9,7 +9,7 @@
 #  VIKTIGT om telefonen: notiser med bild och larmljud kräver att du använder
 #  Home Assistant-appens egen tjänst, som alltid heter notify.mobile_app_…
 #  Hitta den: Utvecklarverktyg → Åtgärder → skriv "mobile_app" i sökrutan.
-#  (Står det bara notify.sundqvist_iphone fungerar enkla textnotiser, men inte bild/larmljud.)
+#  (Står det bara notify.min_telefon fungerar enkla textnotiser, men inte bild/larmljud.)
 # ════════════════════════════════════════════════════════════════════════════
 alias: Larm – ljud, notiser och kamerabilder
 description: >-
