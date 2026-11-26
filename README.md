@@ -1,5 +1,7 @@
 # Aura – en premium-dashboard för Home Assistant
 
+# ⚠️ Ersatt av Aura 2.0 → github.com/sundqvist80/aura-2
+
 > *A modern, animated Home Assistant dashboard in Swedish, built on a single `custom:button-card`. Fits a landscape tablet without scrolling, works great on phones, and is configured from one simple settings block.*
 
 Aura är en komplett dashboard för Home Assistant med ett modernt, animerat utseende i stil med en köpt app. Hela gränssnittet ritas av **ett enda button-card-kort** och styrs från **ett enda inställningsblock** (`mitt_hem`). Byter du hem, lampor eller sensorer ändrar du några rader, inte hela dashboarden.
